@@ -21,24 +21,24 @@ def parse_box(box_str):
 
 def draw_vector(ax, origin, direction, length=10, **kwargs):
     ax.quiver(
-        origin[0], origin[1], origin[2],
-        direction[0], direction[1], direction[2],
+        origin[0], origin[2], origin[1],  # Swap y and z
+        direction[0], direction[2], direction[1],  # Swap y and z
         length=length, **kwargs
     )
 
 def draw_box(ax, min_x, min_y, min_z, max_x, max_y, max_z, **kwargs):
     r = [min_x, max_x]
     X, Y = np.meshgrid(r, r)
-    ax.scatter([min_x, max_x], [min_y, max_y], [min_z, max_z], c='r')
+    ax.scatter([min_x, max_x], [min_z, max_z], [min_y, max_y], c='r')  # Swap y and z
 
     # Draw faces
     ax.add_collection3d(Poly3DCollection([
-        list(zip([min_x, min_x, max_x, max_x], [min_y, max_y, max_y, min_y], [min_z, min_z, min_z, min_z])),
-        list(zip([min_x, min_x, max_x, max_x], [min_y, max_y, max_y, min_y], [max_z, max_z, max_z, max_z])),
-        list(zip([min_x, min_x, min_x, min_x], [min_y, min_y, max_y, max_y], [min_z, max_z, max_z, min_z])),
-        list(zip([max_x, max_x, max_x, max_x], [min_y, min_y, max_y, max_y], [min_z, max_z, max_z, min_z])),
-        list(zip([min_x, max_x, max_x, min_x], [min_y, min_y, min_y, min_y], [min_z, min_z, max_z, max_z])),
-        list(zip([min_x, max_x, max_x, min_x], [max_y, max_y, max_y, max_y], [min_z, min_z, max_z, max_z]))
+        list(zip([min_x, min_x, max_x, max_x], [min_z, min_z, max_z, max_z], [min_y, max_y, max_y, min_y])),  # Swap y and z
+        list(zip([min_x, min_x, max_x, max_x], [min_z, min_z, max_z, max_z], [max_y, max_y, max_y, max_y])),  # Swap y and z
+        list(zip([min_x, min_x, min_x, min_x], [min_z, max_z, max_z, min_z], [min_y, min_y, max_y, max_y])),  # Swap y and z
+        list(zip([max_x, max_x, max_x, max_x], [min_z, max_z, max_z, min_z], [min_y, min_y, max_y, max_y])),  # Swap y and z
+        list(zip([min_x, max_x, max_x, min_x], [min_z, min_z, min_z, min_z], [min_y, max_y, max_y, min_y])),  # Swap y and z
+        list(zip([min_x, max_x, max_x, min_x], [max_z, max_z, max_z, max_z], [min_y, max_y, max_y, min_y]))  # Swap y and z
     ], **kwargs))
 
 def main():
@@ -55,12 +55,22 @@ def main():
     draw_box(ax, min_x, min_y, min_z, max_x, max_y, max_z, alpha=0.3, color='red')
 
     ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_ylabel('Z')  # Change label from 'Y' to 'Z'
+    ax.set_zlabel('Y')  # Change label from 'Z' to 'Y'
 
-    ax.set_xlim([min(min_x, origin[0]), max(max_x, origin[0] + direction[0]*10)])
-    ax.set_ylim([min(min_y, origin[1]), max(max_y, origin[1] + direction[1]*10)])
-    ax.set_zlim([min(min_z, origin[2]), max(max_z, origin[2] + direction[2]*10)])
+    # Determine the center and maximum range across all axes
+    x_mid = 0.5 * (min_x + max_x)
+    y_mid = 0.5 * (min_y + max_y)
+    z_mid = 0.5 * (min_z + max_z)
+    max_range = max(max_x - min_x, max_y - min_y, max_z - min_z)
+
+    # Ensure each axis has at least 30 units of range
+    min_range = 30
+    max_range = max(max_range, min_range)
+
+    ax.set_xlim([x_mid - max_range / 2, x_mid + max_range / 2])
+    ax.set_ylim([z_mid - max_range / 2, z_mid + max_range / 2])  # Use z limits for y
+    ax.set_zlim([y_mid - max_range / 2, y_mid + max_range / 2])  # Use y limits for z
 
     plt.show()
 
